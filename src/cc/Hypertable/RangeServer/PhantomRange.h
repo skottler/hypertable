@@ -89,7 +89,7 @@ namespace Hypertable {
   private:
 
     String create_log(FilesystemPtr &log_dfs, const String &log_dir,
-                      MetaLog::EntityRange *range_entity);
+                      MetaLogEntityRange *range_entity);
 
     typedef std::map<uint32_t, FragmentDataPtr> FragmentMap;
     Mutex            m_mutex;
