@@ -50,6 +50,7 @@ extern "C" {
 #include "Hypertable/Lib/DataGenerator.h"
 #include "Hypertable/Lib/Config.h"
 #include "Hypertable/Lib/Cells.h"
+#include "Hypertable/Lib/TableMutatorAsyncDispatchHandler.h"
 
 #include "LoadClient.h"
 #include "LoadThread.h"
@@ -159,6 +160,8 @@ int main(int argc, char **argv) {
   ::int32_t delete_pct = 0;
   ::int32_t parallel = 0;
 
+  TableMutatorAsyncDispatchHandler::start_logging("client_mutation.log");
+
   try {
     init_with_policies<Policies>(argc, argv);
 
@@ -254,10 +257,12 @@ int main(int argc, char **argv) {
     }
   }
   catch (Exception &e) {
+    TableMutatorAsyncDispatchHandler::stop_logging();
     HT_ERROR_OUT << e << HT_END;
     exit(1);
   }
 
+  TableMutatorAsyncDispatchHandler::stop_logging();
   fflush(stdout);
   _exit(0); // don't bother with static objects
 }

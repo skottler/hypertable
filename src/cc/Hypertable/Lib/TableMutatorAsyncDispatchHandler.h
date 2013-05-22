@@ -28,6 +28,9 @@
 #include "TableMutatorAsync.h"
 #include "TableMutatorAsyncSendBuffer.h"
 
+#include <iostream>
+#include <fstream>
+
 namespace Hypertable {
 
   /**
@@ -54,6 +57,12 @@ namespace Hypertable {
      * @param event_ptr shared pointer to event object
      */
     virtual void handle(EventPtr &event_ptr);
+
+    static bool logging_enabled;
+    static std::ofstream log_out;
+    static void start_logging(const String &outfile);
+    static void stop_logging();
+    static void log_message(const String &message);
 
   private:
     ApplicationQueueInterfacePtr     m_app_queue;

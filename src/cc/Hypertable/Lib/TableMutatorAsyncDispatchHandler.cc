@@ -31,6 +31,24 @@
 using namespace Hypertable;
 using namespace Serialization;
 
+bool TableMutatorAsyncDispatchHandler::logging_enabled = false;
+std::ofstream TableMutatorAsyncDispatchHandler::log_out;
+
+void TableMutatorAsyncDispatchHandler::start_logging(const String &outfile) {
+  TableMutatorAsyncDispatchHandler::logging_enabled = true;
+  TableMutatorAsyncDispatchHandler::log_out.open(outfile.c_str(), std::ios_base::out|std::ios_base::trunc);
+}
+
+void TableMutatorAsyncDispatchHandler::stop_logging() {
+  TableMutatorAsyncDispatchHandler::log_out << std::flush;
+  TableMutatorAsyncDispatchHandler::log_out.close();
+}
+
+void TableMutatorAsyncDispatchHandler::log_message(const String &message) {
+  TableMutatorAsyncDispatchHandler::log_out << message;
+}
+
+
 /**
  *
  */
@@ -64,6 +82,10 @@ void TableMutatorAsyncDispatchHandler::handle(EventPtr &event_ptr) {
       uint32_t count, offset, len;
 
       if (decode_remain == 0) {
+        log_message(format("handle (%s) count=%d handler=%p %s\n",
+                           (const char *)(m_send_buffer->pending_updates.base+2),
+                           (int)m_send_buffer->send_count,
+                           (void *)this, Error::get_text(error)));
         m_send_buffer->clear();
       }
       else {
@@ -78,6 +100,10 @@ void TableMutatorAsyncDispatchHandler::handle(EventPtr &event_ptr) {
             HT_ERROR_OUT << e << HT_END;
             break;
           }
+          log_message(format("handle (%s) count=%d handler=%p %s\n",
+                             (const char *)(m_send_buffer->pending_updates.base+2),
+                             (int)count, (void *)this,
+                             Error::get_text(error)));
           if (error == Error::RANGESERVER_OUT_OF_RANGE ||
               error == Error::RANGESERVER_RANGE_NOT_YET_ACKNOWLEDGED)
             m_send_buffer->add_retries(count, offset, len);

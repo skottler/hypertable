@@ -305,6 +305,10 @@ void TableMutatorAsyncScatterBuffer::send(uint32_t flags) {
                             send_buffer->send_count, send_buffer->pending_updates, flags,
                             send_buffer->dispatch_handler.get());
 
+      TableMutatorAsyncDispatchHandler::log_message(format("update (%s) count=%d handler=%p OK\n",
+                                                           (const char *)(send_buffer->pending_updates.base+2),
+                                                           (int)send_buffer->send_count,
+                                                           (void *)send_buffer->dispatch_handler.get()));
       outstanding = true;
 
       if (flags & Table::MUTATOR_FLAG_NO_LOG_SYNC)
@@ -312,6 +316,12 @@ void TableMutatorAsyncScatterBuffer::send(uint32_t flags) {
 
     }
     catch (Exception &e) {
+      TableMutatorAsyncDispatchHandler::log_message(format("update (%s) count=%d handler=%p %s\n",
+                                                           (const char *)(send_buffer->pending_updates.base+2),
+                                                           (int)send_buffer->send_count,
+                                                           (void *)send_buffer->dispatch_handler.get(),
+                                                           Error::get_text(e.code())));
+
       if (e.code() == Error::COMM_NOT_CONNECTED ||
           e.code() == Error::COMM_BROKEN_CONNECTION ||
           e.code() == Error::COMM_INVALID_PROXY) {
