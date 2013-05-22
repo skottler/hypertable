@@ -45,16 +45,7 @@ namespace Hypertable {
       HT_ASSERT(verification == 123456789LL);
     }
     bool remove_ok(StringSet &remove_ok_logs) {
-      foreach_ht (const String &log_path, purge_dirs)
-        if (remove_ok_logs.count(log_path) == 0)
-          return false;
-      return true;
-    }
-    String unremovable_log(StringSet &remove_ok_logs) {
-      foreach_ht (const String &log_path, purge_dirs)
-        if (remove_ok_logs.count(log_path) == 0)
-          return log_path;
-      return "";
+      return parent == 0 || remove_ok_logs.count(log_dir);
     }
     String     log_dir;
     uint32_t   num;

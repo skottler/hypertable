@@ -108,6 +108,7 @@ void TableInfoMap::unstage_range(const TableIdentifier *table, const RangeSpec *
 
 void TableInfoMap::add_staged_range(const TableIdentifier *table, RangePtr &range, const char *transfer_log) {
   ScopedLock lock(m_mutex);
+  StringSet linked_logs;
   int error;
 
   InfoMap::iterator iter = m_map.find(table->id);
@@ -130,6 +131,8 @@ void TableInfoMap::add_staged_range(const TableIdentifier *table, RangePtr &rang
 
       range->replay_transfer_log(commit_log_reader.get());
 
+      commit_log_reader->get_linked_logs(linked_logs);
+
       if ((error = log->link_log(commit_log_reader.get())) != Error::OK)
         HT_THROWF(error, "Unable to link transfer log (%s) into commit log(%s)",
                   transfer_log, log->get_log_dir().c_str());
@@ -138,7 +141,9 @@ void TableInfoMap::add_staged_range(const TableIdentifier *table, RangePtr &rang
 
   HT_MAYBE_FAIL_X("add-staged-range-2", !table->is_system());
 
-  Global::remove_ok_logs->insert(transfer_log);
+  linked_logs.insert(transfer_log);
+
+  Global::remove_ok_logs->insert(linked_logs);
 
   // Record Range and RemoveOkLogs entities in RSML
   if (Global::rsml_writer == 0)

@@ -4073,7 +4073,7 @@ void RangeServer::phantom_commit_ranges(ResponseCallback *cb, int64_t op_id,
   KeySpec key;
   String our_location = Global::location_initializer->get();
   vector<MetaLog::Entity *> entities;
-  StringSet transfer_logs;
+  StringSet linked_logs;
   map<QualifiedRangeSpec, TableInfoPtr> phantom_table_info_map;
   map<QualifiedRangeSpec, int> error_map;
   vector<RangePtr> range_vec;
@@ -4163,7 +4163,7 @@ void RangeServer::phantom_commit_ranges(ResponseCallback *cb, int64_t op_id,
       entity->set_load_acknowledged(false);
       entity->clear_state_bits(RangeState::PHANTOM);
       entities.push_back(entity);
-      transfer_logs.insert(phantom_range->get_phantom_logname());
+      phantom_range->get_linked_logs(linked_logs);
 
       HT_MAYBE_FAIL_X("phantom-commit-user-1", rr.table.is_user());
 
@@ -4220,11 +4220,11 @@ void RangeServer::phantom_commit_ranges(ResponseCallback *cb, int64_t op_id,
 
     /*
      * This method atomically does the following:
-     *   1. Adds transfer_logs to RemoveOkLogs entity
+     *   1. Adds linked_logs (transfer logs + children) to RemoveOkLogs entity
      *   2. Persists entities and RemoveOkLogs entity to RSML
      *   3. Merges phantom_map into the live map
      */
-    m_live_map->merge(phantom_map.get(), entities, transfer_logs);
+    m_live_map->merge(phantom_map.get(), entities, linked_logs);
 
     HT_MAYBE_FAIL_X("phantom-commit-user-3", specs.back().table.is_user());
 

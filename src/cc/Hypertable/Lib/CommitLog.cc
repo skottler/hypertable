@@ -320,13 +320,13 @@ int CommitLog::purge(int64_t revision, StringSet &remove_ok_logs,
     }
     else {
       if (fi->revision < revision)
-        HT_INFOF("purge(%s) breaking on fragment %u due to unremovable log: %s",
-                 m_log_dir.c_str(), (unsigned)fi->num,
-                 fi->unremovable_log(remove_ok_logs).c_str());
+        HT_INFOF("purge(%s,rev=%llu) breaking on %s/%u: unremovable",
+                 m_log_dir.c_str(), (Llu)revision, fi->log_dir.c_str(),
+                 (unsigned)fi->num);
       else
-        HT_INFOF("purge(%s) breaking on fragment %u due to fi->rev=%llu >= "
-                 "rev=%llu", m_log_dir.c_str(), (unsigned)fi->num,
-                 (Llu)fi->revision, (Llu)revision);
+        HT_INFOF("purge(%s,rev=%llu) breaking on %s/%u: fi->rev=%llu",
+                 m_log_dir.c_str(), (Llu)revision, fi->log_dir.c_str(),
+                 (unsigned)fi->num, (Llu)fi->revision);
       break;
     }
   }

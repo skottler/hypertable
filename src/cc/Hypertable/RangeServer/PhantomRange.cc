@@ -164,6 +164,8 @@ void PhantomRange::populate_range_and_log(FilesystemPtr &log_dfs,
     ;
   *is_empty = m_phantom_log->get_latest_revision() == TIMESTAMP_MIN;
 
+  m_phantom_log->get_linked_logs(m_linked_logs);
+  m_linked_logs.insert(m_phantom_logname);
 }
 
 const String & PhantomRange::get_phantom_logname() {
@@ -175,6 +177,12 @@ CommitLogReaderPtr PhantomRange::get_phantom_log() {
   ScopedLock lock(m_mutex);
   return m_phantom_log;
 }
+
+void PhantomRange::get_linked_logs(StringSet &linked_logs) {
+  ScopedLock lock(m_mutex);
+  linked_logs.insert(m_linked_logs.begin(), m_linked_logs.end());
+}
+
 
 void PhantomRange::set_replayed() {
   ScopedLock lock(m_mutex);
