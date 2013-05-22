@@ -2044,6 +2044,13 @@ RangeServer::update(ResponseCallbackUpdate *cb, const TableIdentifier *table,
   if (m_update_delay)
     poll(0, 0, m_update_delay);
 
+  {
+    const uint8_t *ptr = buffer.base;
+    Serialization::decode_vi32(&ptr);
+    ptr++;
+    HT_INFOF("Received update of %u keys starting with %s", count, (const char *)ptr);
+  }
+
   HT_DEBUG_OUT <<"Update: "<< *table << HT_END;
 
   if (!m_replay_finished) {
@@ -2827,6 +2834,9 @@ void RangeServer::update_add_and_respond() {
               encode_i32(&ptr, request->send_back_vector[i].count);
               encode_i32(&ptr, request->send_back_vector[i].offset);
               encode_i32(&ptr, request->send_back_vector[i].len);
+              HT_INFOF("Sending back %u keys due to %s",
+                       (unsigned)request->send_back_vector[i].count,
+                       Error::get_text(request->send_back_vector[i].error));
               /*
                 HT_INFOF("Sending back error %x, count %d, offset %d, len %d, table id %s",
                 request->send_back_vector[i].error, request->send_back_vector[i].count,
